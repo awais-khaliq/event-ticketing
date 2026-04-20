@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketHive - Fast & Secure Ticketing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z" fill="url(#gradient)"/>
+                    <defs>
+                        <linearGradient id="gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#FF512F" />
+                            <stop offset="1" stop-color="#F09819" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1>TicketHive</h1>
+            </div>
+            <p class="subtitle">Secure, High-Concurrency Checkout System</p>
+        </header>
+
+        <div id="notification-container"></div>
+
+        <main>
+            <div class="section-header">
+                <h2>Upcoming Events</h2>
+                <div class="live-indicator">
+                    <div class="pulse"></div> Live Updates
+                </div>
+            </div>
+            
+            <div class="events-grid" id="events-grid">
+                <!-- Events will be populated here via JS -->
+                <div class="loading-state">Loading amazing events...</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal-backdrop" id="booking-modal">
+        <div class="modal-card">
+            <button class="close-btn" id="close-modal">&times;</button>
+            <h3 id="modal-event-title">Event Name</h3>
+            <p class="modal-price" id="modal-event-price">$0.00</p>
+            
+            <form id="booking-form">
+                <input type="hidden" id="modal-event-id">
+                <div class="form-group">
+                    <label for="email">Enter your email</label>
+                    <input type="email" id="email" required placeholder="hello@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Number of Tickets</label>
+                    <input type="number" id="quantity" min="1" max="5" value="1" required>
+                </div>
+                <button type="submit" class="primary-btn" id="submit-btn">
+                    <span>Pay Securely</span>
+                    <div class="loader" id="btn-loader"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
