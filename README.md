@@ -1,78 +1,52 @@
-<div align="center">
-  
-  # 🎟️ TicketHive - High-Concurrency Ticketing System
+# TicketHive: High-Concurrency Ticketing Backend
 
-  <p>
-    <b>A robust, event-driven Spring Boot backend simulating a high-traffic ticket booking platform.</b>
-  </p>
+A Spring Boot backend application built to handle high-traffic, concurrent booking scenarios where thousands of users attempt to reserve the same seats simultaneously.
 
-  ![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=java&logoColor=white)
-  ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
-  ![H2 Database](https://img.shields.io/badge/H2-In--Memory-003545?style=for-the-badge)
-  ![Vanilla Frontend](https://img.shields.io/badge/Frontend-HTML/CSS/JS-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+## Project Overview
 
-</div>
+Standard CRUD applications often struggle under heavy concurrent load, leading to race conditions like oversold inventory. This project tackles the problem head-on using database-level pessimistic locking.
 
-<br/>
+Instead of a basic "buy instantly" flow, this system mimics real-world enterprise ticketing platforms (like Ticketmaster). When a user selects a ticket, the system locks specific seats for 10 minutes, giving the user a checkout window. If payment isn't completed within that time, a background worker automatically releases the seats back into the available pool.
 
-## ✨ Overview
+## Key Features
 
-This project is not your typical CRUD application. It is designed to tackle a classic computer science problem: **High Concurrency and Race Conditions**. 
+* **Pessimistic Seat Locking:** Uses Postgres/H2 row-level locks via `FOR UPDATE SKIP LOCKED` to safely grab available seats without deadlocks.
+* **Asynchronous Expiration Workers:** Scheduled Spring tasks automatically detect and release expired reservations to keep inventory accurate.
+* **Zero-Config Execution:** Uses an in-memory H2 database with pre-populated dummy data so you can clone and run it immediately.
 
-Imagine 10,000 people trying to buy the last 50 tickets to a Taylor Swift concert at the exact same millisecond. How do you prevent double-booking? This project natively solves that on the database layer and pairs it with a beautiful, modern UI.
+## Technical Architecture
 
----
-
-## 🚀 Key Features
-
-* **🏎️ Atomic Concurrency Handling**: Utilizes row-level SQL updates instead of standard read-then-write transactions. This completely eliminates race conditions without massive performance overhead.
-* **✨ Bright, Humane UI**: Includes a custom frontend built entirely in Vanilla HTML/CSS/JS bundled inside the Spring resources. Features glassmorphism, floating gradient blobs, and responsive design.
-* **🔴 Live Data Polling**: The frontend aggressively polls the backend to display real-time ticket availability, visually alerting users when seats drop below critical levels.
-* **⚡ Zero-Config Setup**: Uses an embedded H2 Database pre-populated with mock data. Clone it, run it, and it works instantly.
-
----
-
-## 🛠️ Architecture Highlight (For Technical Reviewers)
-
-> **The Race Condition Problem:**
-> Normal ORM implementations retrieve an object, subtract the value in memory (`getAvailableSeats() - 1`), and save it. Under heavy server load, two concurrent threads will read the exact same seat count, resulting in over-sold tickets.
-
-**My Solution:**
-Instead of pulling the entity into memory, we defer the logic to the database engine using an atomic `@Modifying` query in Spring Data JPA. By doing this, the database utilizes its own internal row-locks to guarantee transaction safety.
+The core logic defers concurrency control to the database engine. In Spring Data JPA, this is achieved via the `@Lock(LockModeType.PESSIMISTIC_WRITE)` annotation alongside `SKIP LOCKED` query hints:
 
 ```java
-@Modifying
-@Query("UPDATE Event e SET e.availableSeats = e.availableSeats - :quantity WHERE e.id = :eventId AND e.availableSeats >= :quantity")
-int decrementAvailableSeats(@Param("eventId") Long eventId, @Param("quantity") int quantity);
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@QueryHints({
+    @QueryHint(name = "jakarta.persistence.lock.timeout", value = "-2") // SKIP LOCKED
+})
+@Query("SELECT s FROM Seat s WHERE s.eventId = :eventId AND s.status = 'AVAILABLE'")
+List<Seat> findAvailableSeatsForLocking(@Param("eventId") Long eventId, Pageable pageable);
 ```
 
----
+This ensures that under heavy load, two concurrent threads will never read the exact same seat record, completely eliminating double-booking errors.
 
-## 💻 How to Run Locally
+## How to Run Locally
 
-You must have **Java 17** and **Maven** installed on your machine.
+Prerequisites: Java 17 and Maven.
 
-1. **Clone the repository:**
+1. Clone the repository and navigate to the project root:
    ```bash
-   git clone https://github.com/your-username/event-ticketing.git
+   git clone <your-repo-url>
    cd event-ticketing
    ```
 
-2. **Run the Spring Boot application:**
+2. Run the application:
    ```bash
    mvn spring-boot:run
    ```
 
-3. **View the UI:**
-   Open your browser and navigate to [http://localhost:8080](http://localhost:8080).
+3. Access the service at `http://localhost:8080`.
 
----
-
-## 🔮 Future Enhancements
-- [ ] Swap in-memory H2 database for PostgreSQL and add Docker Compose.
-- [ ] Implement a Message Broker (RabbitMQ/Kafka) for virtual waiting-room queues.
-- [ ] Add Spring Security (JWT) for user authentication.
-
-<div align="center">
-  <i>Built with ❤️ by Awais Khaliq</i>
-</div>
+## Future Enhancements
+* Database transition from H2 to PostgreSQL via Docker Compose.
+* Implementation of a message broker queue (RabbitMQ) to manage traffic spikes instead of direct database hits.
+* JWT authentication for secure user integration.

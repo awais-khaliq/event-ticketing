@@ -9,8 +9,11 @@ import org.springframework.data.repository.query.Param;
 public interface EventRepository extends JpaRepository<Event, Long> {
 
     // Atomic update to handle high concurrency. 
-    // This prevents double booking by ensuring we only decrement if availableSeats >= quantity.
     @Modifying
     @Query("UPDATE Event e SET e.availableSeats = e.availableSeats - :quantity WHERE e.id = :eventId AND e.availableSeats >= :quantity")
     int decrementAvailableSeats(@Param("eventId") Long eventId, @Param("quantity") int quantity);
+
+    @Modifying
+    @Query("UPDATE Event e SET e.availableSeats = e.availableSeats + :quantity WHERE e.id = :eventId")
+    int incrementAvailableSeats(@Param("eventId") Long eventId, @Param("quantity") int quantity);
 }
