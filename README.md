@@ -35,7 +35,7 @@ Prerequisites: Java 17 and Maven.
 
 1. Clone the repository and navigate to the project root:
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/awais-khaliq/event-ticketing.git
    cd event-ticketing
    ```
 
